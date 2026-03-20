@@ -1,0 +1,454 @@
+# ============================================================
+# CẤU HÌNH THAM SỐ CHO DỰ ÁN DỰ ĐOÁN TRẢ HÀNG TMĐT
+# ============================================================
+
+# Thông tin chung
+project:
+  name: "E-commerce Returns Prediction"
+  topic_id: 13
+  description: "Dự đoán khả năng trả hàng của khách hàng TMĐT"
+  version: "1.0.0"
+
+# Seed để tái lập kết quả
+seed: 42
+
+# ============================================================
+# CẤU HÌNH ĐƯỜNG DẪN
+# ============================================================
+paths:
+  raw_data: "data/raw/ecommerce_returns.csv"
+  processed_data: "data/processed/"
+  cleaned_data: "data/processed/cleaned_data.parquet"
+  features_mining: "data/processed/features_for_mining.parquet"
+  features_modeling: "data/processed/features_for_modeling.parquet"
+  output_figures: "outputs/figures/"
+  output_tables: "outputs/tables/"
+  output_models: "outputs/models/"
+  output_reports: "outputs/reports/"
+
+# ============================================================
+# CẤU HÌNH DỮ LIỆU
+# ============================================================
+data:
+  # Thông tin cột
+  columns:
+    id_columns:
+      - "order_id"
+      - "customer_id"
+      - "product_id"
+    target: "return_flag"  # Biến mục tiêu: 1 = trả hàng, 0 = không trả
+    datetime_column: "order_date"
+    categorical_columns:
+      - "product_category"
+      - "payment_method"
+      - "shipping_type"
+      - "customer_segment"
+      - "promotion_code"
+      - "return_reason"  # Chỉ có khi return_flag = 1
+    numerical_columns:
+      - "order_value"
+      - "shipping_cost"
+      - "discount_amount"
+      - "customer_tenure_days"
+      - "previous_orders_count"
+      - "previous_returns_count"
+      - "product_price"
+      - "quantity"
+    drop_columns:  # Các cột không sử dụng
+      - "notes"
+      - "internal_notes"
+  
+  # Xử lý missing values
+  missing:
+    numerical_strategy: "median"  # median, mean, constant
+    categorical_strategy: "mode"   # mode, constant
+    constant_fill_value: 0
+    threshold_drop: 50  # Drop cột nếu missing > 50%
+  
+  # Xử lý outlier
+  outlier:
+    method: "iqr"  # iqr, zscore, isolation_forest
+    iqr_multiplier: 1.5
+    zscore_threshold: 3
+    treatment: "cap"  # cap, remove, winsorize
+  
+  # Xử lý imbalance (mất cân bằng lớp)
+  imbalance:
+    sampling_strategy: "auto"
+    random_state: 42
+    methods:
+      smote: true
+      random_oversampling: false
+      random_undersampling: false
+      class_weight: "balanced"
+
+# ============================================================
+# CẤU HÌNH FEATURE ENGINEERING
+# ============================================================
+features:
+  # Đặc trưng RFM cho khách hàng
+  rfm_features:
+    enabled: true
+    recency_window_days: 365
+    frequency_bins: [1, 2, 5, 10, 20]
+    monetary_bins: [10, 50, 100, 500, 1000]
+  
+  # Đặc trưng tỷ lệ trả hàng
+  return_rate_features:
+    enabled: true
+    customer_return_rate: true
+    product_return_rate: true
+    category_return_rate: true
+    min_samples: 5  # Số lượng mẫu tối thiểu để tính tỷ lệ
+  
+  # Đặc trưng thời gian
+  time_features:
+    enabled: true
+    extract:
+      - "day_of_week"
+      - "month"
+      - "quarter"
+      - "is_weekend"
+      - "is_holiday_season"
+      - "hour_of_day"
+    holiday_seasons:
+      - "11-11"  # Singles Day
+      - "11-29"  # Black Friday
+      - "12-24"  # Christmas Eve
+      - "12-25"  # Christmas
+      - "01-01"  # New Year
+  
+  # Đặc trưng tương tác
+  interaction_features:
+    enabled: true
+    create:
+      - "value_per_item: order_value / quantity"
+      - "discount_rate: discount_amount / order_value"
+      - "shipping_ratio: shipping_cost / order_value"
+      - "return_rate_trend: previous_returns_count / (previous_orders_count + 1)"
+  
+  # Đặc trưng lịch sử khách hàng
+  customer_history:
+    enabled: true
+    windows_days: [7, 30, 90, 365]
+    aggregations:
+      - "count"
+      - "sum"
+      - "mean"
+      - "std"
+
+# ============================================================
+# CẤU HÌNH KHAI PHÁ LUẬT KẾT HỢP
+# ============================================================
+association_mining:
+  enabled: true
+  method: "apriori"  # apriori, fpgrowth
+  parameters:
+    min_support: 0.01
+    min_confidence: 0.5
+    min_lift: 1.2
+    max_length: 4
+  discretization:
+    order_value:
+      bins: [0, 50, 100, 200, 500, 1000, 10000]
+      labels: ["Very Low", "Low", "Medium", "High", "Very High", "Premium"]
+    discount_rate:
+      bins: [0, 0.1, 0.2, 0.3, 0.5, 1.0]
+      labels: ["No Discount", "Small", "Medium", "Large", "Very Large"]
+  target_rules:
+    - "return_flag=1"
+    - "return_flag=0"
+  output:
+    top_rules: 20
+    min_interesting_lift: 2.0
+
+# ============================================================
+# CẤU HÌNH PHÂN CỤM
+# ============================================================
+clustering:
+  enabled: true
+  customer_clustering:
+    features:
+      - "customer_return_rate"
+      - "avg_order_value"
+      - "recency_days"
+      - "frequency_orders"
+      - "monetary_total"
+    scaling: "standard"  # standard, minmax, robust
+    methods:
+      kmeans:
+        enabled: true
+        n_clusters_range: [2, 3, 4, 5, 6]
+        random_state: 42
+        max_iter: 300
+      hierarchical:
+        enabled: true
+        n_clusters_range: [2, 3, 4, 5, 6]
+        linkage: "ward"  # ward, complete, average
+      dbscan:
+        enabled: false
+        eps: 0.5
+        min_samples: 5
+    evaluation:
+      metrics: ["silhouette", "calinski_harabasz", "davies_bouldin"]
+  
+  product_clustering:
+    enabled: true
+    features:
+      - "product_return_rate"
+      - "avg_price"
+      - "return_count"
+      - "sold_count"
+    scaling: "standard"
+    methods:
+      kmeans:
+        n_clusters: 4
+        random_state: 42
+
+# ============================================================
+# CẤU HÌNH MÔ HÌNH PHÂN LỚP (SUPERVISED)
+# ============================================================
+classification:
+  enabled: true
+  target: "return_flag"
+  
+  # Train-test split
+  split:
+    method: "random"  # random, stratified, temporal
+    test_size: 0.2
+    validation_size: 0.2
+    temporal_split_date: "2024-01-01"  # Nếu dùng temporal split
+    random_state: 42
+    stratify: true  # Giữ tỷ lệ lớp
+  
+  # Cross-validation
+  cv:
+    method: "stratified_kfold"  # kfold, stratified_kfold, timeseries
+    n_folds: 5
+    shuffle: true
+    random_state: 42
+  
+  # Baseline models
+  baseline_models:
+    - "dummy"  # DummyClassifier
+    - "logistic_regression"
+    - "decision_tree"
+  
+  # Advanced models
+  advanced_models:
+    random_forest:
+      enabled: true
+      n_estimators: [100, 200, 300]
+      max_depth: [5, 10, 15, None]
+      min_samples_split: [2, 5, 10]
+      min_samples_leaf: [1, 2, 4]
+      class_weight: ["balanced", "balanced_subsample"]
+      random_state: 42
+      n_jobs: -1
+    
+    xgboost:
+      enabled: true
+      n_estimators: [100, 200, 300]
+      max_depth: [3, 5, 7]
+      learning_rate: [0.01, 0.05, 0.1]
+      subsample: [0.8, 0.9, 1.0]
+      colsample_bytree: [0.8, 0.9, 1.0]
+      scale_pos_weight: [1, 2, 5]  # Cân bằng lớp
+      random_state: 42
+      n_jobs: -1
+    
+    lightgbm:
+      enabled: true
+      n_estimators: [100, 200, 300]
+      max_depth: [3, 5, 7, -1]
+      learning_rate: [0.01, 0.05, 0.1]
+      num_leaves: [15, 31, 63]
+      class_weight: ["balanced", None]
+      random_state: 42
+      n_jobs: -1
+  
+  # Hyperparameter tuning
+  tuning:
+    method: "grid_search"  # grid_search, random_search, bayesian
+    n_iter_random: 50  # Cho random_search
+    scoring: "f1"  # Metric để tối ưu
+    cv_folds: 3
+  
+  # Feature importance
+  feature_importance:
+    enabled: true
+    top_n_features: 20
+    permutation_importance: true
+
+# ============================================================
+# CẤU HÌNH BÁN GIÁM SÁT (SEMI-SUPERVISED)
+# ============================================================
+semi_supervised:
+  enabled: true
+  
+  # Kịch bản thiếu nhãn
+  labeled_percentages: [5, 10, 15, 20, 30]  # % nhãn được giữ lại
+  
+  # Self-training
+  self_training:
+    enabled: true
+    base_estimator: "random_forest"
+    threshold: 0.8  # Ngưỡng tin cậy để gán pseudo-label
+    max_iterations: 10
+    criterion: "threshold"  # threshold, k_best
+    k_best: 100  # Số lượng pseudo-label tốt nhất mỗi vòng
+  
+  # Label propagation
+  label_propagation:
+    enabled: true
+    kernel: "rbf"  # rbf, knn
+    gamma: 20
+    n_neighbors: 7
+    max_iter: 30
+  
+  # Label spreading
+  label_spreading:
+    enabled: true
+    kernel: "rbf"
+    gamma: 20
+    alpha: 0.2  # Tham số clamping
+    max_iter: 30
+  
+  # Evaluation
+  evaluation:
+    metrics: ["pr_auc", "f1", "recall", "precision"]
+    learning_curve:
+      enabled: true
+      n_repeats: 5
+      random_state: 42
+    error_analysis:
+      by_feature: ["promotion_code", "product_category", "customer_segment"]
+      by_season: true
+
+# ============================================================
+# CẤU HÌNH ĐÁNH GIÁ
+# ============================================================
+evaluation:
+  # Classification metrics
+  classification_metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1"
+    - "roc_auc"
+    - "pr_auc"  # Precision-Recall AUC (quan trọng cho imbalance)
+    - "average_precision"
+    - "confusion_matrix"
+    - "classification_report"
+  
+  # Imbalance specific
+  imbalance_metrics:
+    - "balanced_accuracy"
+    - "g_mean"
+    - "cohen_kappa"
+    - "matthews_corrcoef"
+  
+  # Threshold analysis
+  threshold_analysis:
+    enabled: true
+    thresholds: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    optimize_for: "f1"  # precision, recall, f1, business_cost
+  
+  # Cost-sensitive evaluation
+  business_costs:
+    enabled: true
+    false_positive_cost: 10  # Chi phí xử lý đơn trả sai
+    false_negative_cost: 100  # Chi phí bỏ sót đơn trả (mất hàng, vận chuyển)
+    total_cost: true
+
+# ============================================================
+# CẤU HÌNH TRỰC QUAN HÓA
+# ============================================================
+visualization:
+  # Style
+  style: "seaborn-v0_8-darkgrid"
+  figure_size: [12, 8]
+  dpi: 100
+  color_palette: "viridis"
+  
+  # EDA plots
+  eda_plots:
+    distribution_plots: true
+    correlation_heatmap: true
+    box_plots: true
+    pair_plots: false
+    time_series_plots: true
+  
+  # Mining plots
+  mining_plots:
+    association_rules_scatter: true
+    cluster_profiles: true
+    silhouette_analysis: true
+    dendrogram: true
+  
+  # Model plots
+  model_plots:
+    confusion_matrix: true
+    roc_curves: true
+    pr_curves: true
+    feature_importance: true
+    learning_curves: true
+    prediction_distribution: true
+  
+  # Save formats
+  save_formats: ["png", "pdf"]
+  save_quality: 95
+
+# ============================================================
+# CẤU HÌNH LOGGING
+# ============================================================
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "outputs/logs/project.log"
+  console: true
+
+# ============================================================
+# CẤU HÌNH BÁO CÁO
+# ============================================================
+reporting:
+  generate_latex: true
+  generate_markdown: true
+  generate_html: true
+  
+  tables:
+    format: "latex"  # latex, csv, markdown
+    precision: 3
+    
+  figures:
+    include_all: true
+    caption_prefix: "Hình"
+    
+  sections:
+    - "introduction"
+    - "data_description"
+    - "eda"
+    - "preprocessing"
+    - "association_mining"
+    - "clustering"
+    - "supervised_modeling"
+    - "semi_supervised"
+    - "evaluation"
+    - "conclusion"
+
+# ============================================================
+# CẤU HÌNH DEMO/GUI (TÙY CHỌN)
+# ============================================================
+demo:
+  enabled: true  # Nếu muốn làm thêm demo để cộng điểm
+  type: "streamlit"  # streamlit, gradio, flask
+  port: 8501
+  host: "localhost"
+  
+  # Features
+  features:
+    upload_file: true
+    predict_single: true
+    predict_batch: true
+    visualize_results: true
+    download_results: true

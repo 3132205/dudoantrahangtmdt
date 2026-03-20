@@ -1,0 +1,29 @@
+# Data files
+data/raw/
+*.csv
+*.parquet
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Outputs
+outputs/
+*.pkl
+*.joblib
+
+# Environment
+.env
+venv/

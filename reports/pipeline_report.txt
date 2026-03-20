@@ -1,0 +1,24 @@
+================================================================================
+BAO CAO TONG HOP PIPELINE
+================================================================================
+Thoi gian: 2026-03-19 11:38:21
+Tong thoi gian chay: 5.02 giay
+
+CAC BUOC DA HOAN THANH:
+  [OK] Preprocess
+  [OK] Feature Engineering
+  [OK] Mining & Clustering
+  [OK] Supervised Modeling
+  [OK] Semi-supervised
+
+TOP 5 FEATURES QUAN TRONG NHAT:
+  1. shipping_cost: 0.1814
+  2. discount_rate: 0.1698
+  3. value_per_item: 0.1659
+  4. shipping_ratio: 0.1593
+  5. order_value: 0.1559
+
+PHAN CUM KHACH HANG:
+  Cum 0: 98 khach hang
+  Cum 1: 51 khach hang
+  Cum 2: 48 khach hang

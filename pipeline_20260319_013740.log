@@ -1,0 +1,136 @@
+2026-03-19 01:37:40,804 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:40,804 - __main__ - INFO - KHOI DONG PIPELINE
+2026-03-19 01:37:40,805 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:40,805 - __main__ - ERROR - Khong tim thay file cau hinh: configs/params.yaml
+2026-03-19 01:37:40,805 - __main__ - ERROR - Khong the load cau hinh. Pipeline se chay voi cau hinh mac dinh.
+2026-03-19 01:37:40,806 - __main__ - INFO - [OK] Da tao cau hinh mac dinh
+2026-03-19 01:37:40,807 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:40,807 - __main__ - INFO - KHOI TAO PIPELINE
+2026-03-19 01:37:40,807 - __main__ - INFO - Config: configs/params.yaml
+2026-03-19 01:37:40,808 - __main__ - INFO - Project: E-commerce Returns Prediction
+2026-03-19 01:37:40,808 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:40,808 - __main__ - WARNING - [WARN] Pipeline khoi tao voi cau hinh mac dinh do khong tim thay file config
+2026-03-19 01:37:40,808 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:40,808 - __main__ - INFO - BAT DAU CHAY PIPELINE
+2026-03-19 01:37:40,808 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:40,809 - __main__ - INFO - 
+#################### BUOC 1: Load Data ####################
+2026-03-19 01:37:40,809 - __main__ - INFO - 
+============================================================
+2026-03-19 01:37:40,809 - __main__ - INFO - BUOC 1: LOAD DU LIEU
+2026-03-19 01:37:40,809 - __main__ - INFO - ============================================================
+2026-03-19 01:37:41,272 - __main__ - WARNING - [WARN] Khong tim thay file du lieu. Tao du lieu mau...
+2026-03-19 01:37:41,275 - __main__ - INFO - [OK] Da tao du lieu mau: 1000 dong
+2026-03-19 01:37:41,275 - __main__ - INFO - 
+#################### BUOC 2: Preprocess ####################
+2026-03-19 01:37:41,275 - __main__ - INFO - 
+============================================================
+2026-03-19 01:37:41,275 - __main__ - INFO - BUOC 2: TIEN XU LY DU LIEU
+2026-03-19 01:37:41,275 - __main__ - INFO - ============================================================
+2026-03-19 01:37:41,276 - __main__ - INFO - 2.1. Xu ly missing values...
+2026-03-19 01:37:41,288 - __main__ - INFO -    Missing: 263 -> 263
+2026-03-19 01:37:41,288 - __main__ - INFO - 2.2. Xu ly duplicates...
+2026-03-19 01:37:41,294 - __main__ - INFO -    Duplicates: 0 -> 0
+2026-03-19 01:37:41,300 - __main__ - ERROR - [ERROR] Step: Preprocess FAILED - Elapsed: 0.50s
+2026-03-19 01:37:41,300 - __main__ - ERROR -    Error: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors...
+2026-03-19 01:37:41,300 - __main__ - INFO - 
+#################### BUOC 3: Feature Engineering ####################
+2026-03-19 01:37:41,300 - __main__ - INFO - 
+============================================================
+2026-03-19 01:37:41,300 - __main__ - INFO - BUOC 3: FEATURE ENGINEERING
+2026-03-19 01:37:41,301 - __main__ - INFO - ============================================================
+2026-03-19 01:37:41,302 - __main__ - INFO -    [OK] Da tao value_per_item
+2026-03-19 01:37:41,303 - __main__ - INFO -    [OK] Da tao discount_rate
+2026-03-19 01:37:41,303 - __main__ - INFO -    [OK] Da tao shipping_ratio
+2026-03-19 01:37:41,307 - __main__ - INFO -    [OK] Da tao time features
+2026-03-19 01:37:41,307 - __main__ - INFO - [OK] Da tao 6 features moi: ['value_per_item', 'discount_rate', 'shipping_ratio', 'day_of_week', 'month', 'is_weekend']
+2026-03-19 01:37:41,309 - __main__ - ERROR - [ERROR] Step: Feature Engineering FAILED - Elapsed: 0.50s
+2026-03-19 01:37:41,309 - __main__ - ERROR -    Error: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors...
+2026-03-19 01:37:41,309 - __main__ - INFO - 
+#################### BUOC 4: Mining & Clustering ####################
+2026-03-19 01:37:41,309 - __main__ - INFO - 
+============================================================
+2026-03-19 01:37:41,309 - __main__ - INFO - BUOC 4: MINING & CLUSTERING
+2026-03-19 01:37:41,309 - __main__ - INFO - ============================================================
+2026-03-19 01:37:42,711 - __main__ - INFO - 4.1. Phan cum khach hang...
+2026-03-19 01:37:44,174 - __main__ - INFO -    [OK] Da phan cum 197 khach hang thanh 3 nhom
+2026-03-19 01:37:44,205 - __main__ - INFO - 
+Thong ke cac cum:
+         frequency  avg_order_value     monetary  recency_days
+cluster                                                       
+0         4.326531       283.636837  1191.889694        5.5000
+1         3.470588       182.658431   631.603922       15.0000
+2         8.312500       271.406250  2244.913542        3.8125
+2026-03-19 01:37:44,205 - __main__ - INFO - [OK] Step: Mining & Clustering - Elapsed: 3.40s
+2026-03-19 01:37:44,205 - __main__ - INFO - 
+#################### BUOC 5: Supervised Modeling ####################
+2026-03-19 01:37:44,205 - __main__ - INFO - 
+============================================================
+2026-03-19 01:37:44,206 - __main__ - INFO - BUOC 5: SUPERVISED MODELING
+2026-03-19 01:37:44,206 - __main__ - INFO - ============================================================
+2026-03-19 01:37:44,231 - __main__ - INFO - Features: 3
+2026-03-19 01:37:44,233 - __main__ - INFO - Target distribution:
+return_flag
+0    922
+1     78
+Name: count, dtype: int64
+2026-03-19 01:37:44,237 - __main__ - INFO - Training Random Forest...
+2026-03-19 01:37:44,398 - __main__ - INFO - [OK] Accuracy: 0.9200
+2026-03-19 01:37:44,398 - __main__ - INFO - [OK] F1 Score: 0.8817
+2026-03-19 01:37:44,399 - __main__ - INFO - 
+Confusion Matrix:
+[[184   0]
+ [ 16   0]]
+2026-03-19 01:37:44,418 - __main__ - INFO - [SAVE] Da luu feature importance
+2026-03-19 01:37:44,435 - __main__ - INFO - 
+Top 5 features:
+           feature  importance
+2    shipping_cost    0.348703
+1  discount_amount    0.328005
+0      order_value    0.323292
+2026-03-19 01:37:44,435 - __main__ - INFO - [OK] Step: Supervised Modeling - Elapsed: 3.63s
+2026-03-19 01:37:44,435 - __main__ - INFO - 
+#################### BUOC 6: Semi-supervised ####################
+2026-03-19 01:37:44,435 - __main__ - INFO - 
+============================================================
+2026-03-19 01:37:44,435 - __main__ - INFO - BUOC 6: SEMI-SUPERVISED
+2026-03-19 01:37:44,435 - __main__ - INFO - ============================================================
+2026-03-19 01:37:44,438 - __main__ - INFO -    Thu voi 5% labeled data...
+2026-03-19 01:37:44,491 - __main__ - INFO -       F1 = 0.8792
+2026-03-19 01:37:44,492 - __main__ - INFO -    Thu voi 10% labeled data...
+2026-03-19 01:37:44,544 - __main__ - INFO -       F1 = 0.8817
+2026-03-19 01:37:44,545 - __main__ - INFO -    Thu voi 15% labeled data...
+2026-03-19 01:37:44,594 - __main__ - INFO -       F1 = 0.8817
+2026-03-19 01:37:44,594 - __main__ - INFO -    Thu voi 20% labeled data...
+2026-03-19 01:37:44,651 - __main__ - INFO -       F1 = 0.8817
+2026-03-19 01:37:44,651 - __main__ - INFO -    Thu voi 30% labeled data...
+2026-03-19 01:37:44,704 - __main__ - INFO -       F1 = 0.8817
+2026-03-19 01:37:44,706 - __main__ - INFO - [SAVE] Da luu ket qua semi-supervised
+2026-03-19 01:37:44,706 - __main__ - INFO - [OK] Step: Semi-supervised - Elapsed: 3.90s
+2026-03-19 01:37:44,706 - __main__ - INFO - 
+#################### BUOC 7: Generate Report ####################
+2026-03-19 01:37:44,706 - __main__ - INFO - 
+============================================================
+2026-03-19 01:37:44,707 - __main__ - INFO - BUOC 7: TAO BAO CAO
+2026-03-19 01:37:44,707 - __main__ - INFO - ============================================================
+2026-03-19 01:37:44,711 - __main__ - INFO - [SAVE] Da luu bao cao tai outputs/reports/pipeline_report.txt
+2026-03-19 01:37:44,711 - __main__ - INFO - [OK] Step: Generate Report - Elapsed: 3.91s
+2026-03-19 01:37:44,711 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:44,712 - __main__ - INFO - KET THUC PIPELINE
+2026-03-19 01:37:44,712 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:44,712 - __main__ - INFO - [TIME] Tong thoi gian: 3.91 giay (0.07 phut)
+2026-03-19 01:37:44,712 - __main__ - INFO - [DATA] So buoc thanh cong: 4/7
+2026-03-19 01:37:44,712 - __main__ - WARNING - [WARN] Co 2 loi trong qua trinh chay
+2026-03-19 01:37:44,712 - __main__ - WARNING -    1. Preprocess: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow...
+2026-03-19 01:37:44,713 - __main__ - WARNING -    2. Feature Engineering: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow...
+2026-03-19 01:37:44,713 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:44,713 - __main__ - WARNING - [WARN] Pipeline hoan thanh voi mot so loi.
+2026-03-19 01:37:44,713 - __main__ - INFO - ================================================================================
+2026-03-19 01:37:44,713 - __main__ - INFO - KET THUC PIPELINE VOI MA 0
+2026-03-19 01:37:44,713 - __main__ - INFO - ================================================================================
